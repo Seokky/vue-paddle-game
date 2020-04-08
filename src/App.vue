@@ -25,8 +25,7 @@ export default Vue.extend({
       ball: {
         x: 35,
         y: 35,
-        width: 40,
-        height: 40,
+        radius: 20,
       },
     };
   },
@@ -69,7 +68,15 @@ export default Vue.extend({
     },
     drawBall() {
       this.context.fillStyle = 'orange';
-      this.context.fillRect(this.ball.x, this.ball.y, this.ball.width, this.ball.height);
+      this.context.beginPath();
+      this.context.arc(
+        this.ball.x,
+        this.ball.y,
+        this.ball.radius,
+        0,
+        2 * Math.PI,
+      );
+      this.context.fill();
     },
     drawBorder() {
       this.context.fillStyle = 'blue';
@@ -93,10 +100,10 @@ export default Vue.extend({
       this.ball.x += this.speedX;
       this.ball.y += this.speedY;
 
-      const MIN_X = this.lineWidth;
-      const MIN_Y = this.lineWidth;
-      const MAX_X = canvas.sizes.width - this.lineWidth - this.ball.width;
-      const MAX_Y = canvas.sizes.height - this.lineWidth - this.ball.height;
+      const MIN_X = this.lineWidth + this.ball.radius;
+      const MIN_Y = this.lineWidth + this.ball.radius;
+      const MAX_X = canvas.sizes.width - this.lineWidth - this.ball.radius;
+      const MAX_Y = canvas.sizes.height - this.lineWidth - this.ball.radius;
 
       if (this.ball.x >= MAX_X) {
         this.ball.x = MAX_X;
