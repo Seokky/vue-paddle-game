@@ -3,15 +3,20 @@
     <canvas
       id="canvas"
       ref="canvas"
-      :style="canvas.styles"
+      :style="styles"
     />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import { MIN_BALL_RADIUS } from '@/constants';
 import { canvas } from '@/classes/Canvas';
 import { shapesDrawer } from '@/classes/ShapesDrawer';
+
+/*
+  TODO: make speed dynamic depends on width and height
+*/
 
 export default Vue.extend({
   name: 'App',
@@ -20,19 +25,23 @@ export default Vue.extend({
 
   data() {
     return {
-      speedX: 5,
-      speedY: 5,
       ball: {
         x: 35,
         y: 35,
-        radius: 55,
+        speedX: 5,
+        speedY: 5,
       },
     };
   },
 
   computed: {
-    canvas(): HTMLCanvasElement {
-      return canvas.el;
+    styles() {
+      return canvas.styles;
+    },
+    ballRadius() {
+      const proportionalRadius = (canvas.width / 100) * 2;
+
+      return Math.min(MIN_BALL_RADIUS, proportionalRadius);
     },
   },
 
@@ -47,32 +56,32 @@ export default Vue.extend({
 
   methods: {
     moveBall() {
-      this.ball.x += this.speedX;
-      this.ball.y += this.speedY;
+      this.ball.x += this.ball.speedX;
+      this.ball.y += this.ball.speedY;
 
-      const MIN_X = this.ball.radius;
-      const MIN_Y = this.ball.radius;
-      const MAX_X = canvas.width - this.ball.radius;
-      const MAX_Y = canvas.height - this.ball.radius;
+      const MIN_X = this.ballRadius;
+      const MIN_Y = this.ballRadius;
+      const MAX_X = canvas.width - this.ballRadius;
+      const MAX_Y = canvas.height - this.ballRadius;
 
       if (this.ball.x >= MAX_X) {
         this.ball.x = MAX_X;
-        this.speedX *= -1;
+        this.ball.speedX *= -1;
       }
 
       if (this.ball.x <= MIN_X) {
         this.ball.x = MIN_X;
-        this.speedX *= -1;
+        this.ball.speedX *= -1;
       }
 
       if (this.ball.y >= MAX_Y) {
         this.ball.y = MAX_Y;
-        this.speedY *= -1;
+        this.ball.speedY *= -1;
       }
 
       if (this.ball.y <= MIN_Y) {
         this.ball.y = MIN_Y;
-        this.speedY *= -1;
+        this.ball.speedY *= -1;
       }
     },
     drawAll() {
@@ -91,7 +100,7 @@ export default Vue.extend({
       shapesDrawer.fillCircle(
         this.ball.x,
         this.ball.y,
-        this.ball.radius,
+        this.ballRadius,
         'orange',
       );
     },
@@ -112,9 +121,19 @@ export default Vue.extend({
 
 html {
   overflow: hidden;
+  background-color: lightgray;
+}
+
+#app {
+  height: 100vh;
+  display: flex;
+  align-items: center;
 }
 
 #canvas {
-  background: lightblue;
+  background: #2c1f34;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 0 10px #2c1f34;
 }
 </style>
