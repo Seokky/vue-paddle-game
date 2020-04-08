@@ -10,7 +10,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { canvas } from '@/Canvas';
+import { canvas } from '@/classes/Canvas';
+import { shapesDrawer } from '@/classes/ShapesDrawer';
 
 export default Vue.extend({
   name: 'App',
@@ -21,11 +22,10 @@ export default Vue.extend({
     return {
       speedX: 5,
       speedY: 5,
-      lineWidth: 10,
       ball: {
         x: 35,
         y: 35,
-        radius: 20,
+        radius: 55,
       },
     };
   },
@@ -34,76 +34,26 @@ export default Vue.extend({
     canvas(): HTMLCanvasElement {
       return canvas.el;
     },
-    context(): CanvasRenderingContext2D {
-      return canvas.context;
-    },
   },
 
   async mounted() {
     await canvas.init();
+    shapesDrawer.init(canvas.context);
 
-    this.drawBorder();
     this.drawAll();
 
     window.addEventListener('resize', this.onResize);
   },
 
   methods: {
-    toggleFullscreen(): void {
-      return document.fullscreenElement
-        ? document.exitFullscreen()
-        : this.$refs.canvas.requestFullscreen();
-    },
-    async onResize() {
-      await canvas.init();
-      this.drawBorder();
-    },
-    drawAll() {
-      this.moveBall();
-
-      this.drawMainArea();
-      this.drawBall();
-
-      window.requestAnimationFrame(this.drawAll);
-    },
-    drawBall() {
-      this.context.fillStyle = 'orange';
-      this.context.beginPath();
-      this.context.arc(
-        this.ball.x,
-        this.ball.y,
-        this.ball.radius,
-        0,
-        2 * Math.PI,
-      );
-      this.context.fill();
-    },
-    drawBorder() {
-      this.context.fillStyle = 'blue';
-      this.context.lineWidth = this.lineWidth;
-      this.context.fillRect(
-        0,
-        0,
-        canvas.sizes.width,
-        canvas.sizes.height,
-      );
-    },
-    drawMainArea() {
-      this.context.clearRect(
-        this.lineWidth,
-        this.lineWidth,
-        canvas.sizes.width - this.lineWidth * 2,
-        canvas.sizes.height - this.lineWidth * 2,
-      );
-    },
     moveBall() {
       this.ball.x += this.speedX;
       this.ball.y += this.speedY;
 
-      const MIN_X = this.lineWidth + this.ball.radius;
-      const MIN_Y = this.lineWidth + this.ball.radius;
-      const MAX_X = canvas.sizes.width - this.lineWidth - this.ball.radius;
-      const MAX_Y = canvas.sizes.height - this.lineWidth - this.ball.radius;
+      const MIN_X = this.ball.radius;
+      const MIN_Y = this.ball.radius;
+      const MAX_X = canvas.width - this.ball.radius;
+      const MAX_Y = canvas.height - this.ball.radius;
 
       if (this.ball.x >= MAX_X) {
         this.ball.x = MAX_X;
@@ -124,6 +74,34 @@ export default Vue.extend({
         this.ball.y = MIN_Y;
         this.speedY *= -1;
       }
+    },
+    drawAll() {
+      this.moveBall();
+      this.drawBall();
+
+      window.requestAnimationFrame(this.drawAll);
+    },
+    drawBall() {
+      canvas.context.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height,
+      );
+      shapesDrawer.fillCircle(
+        this.ball.x,
+        this.ball.y,
+        this.ball.radius,
+        'orange',
+      );
+    },
+    toggleFullscreen(): void {
+      return document.fullscreenElement
+        ? document.exitFullscreen()
+        : this.$refs.canvas.requestFullscreen();
+    },
+    async onResize() {
+      await canvas.init();
     },
   },
 });

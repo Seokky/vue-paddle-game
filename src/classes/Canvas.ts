@@ -1,10 +1,5 @@
 import Vue from 'vue';
 
-type TCanvasSizes = {
-  width: number;
-  height: number;
-}
-
 type TCanvasStyles = {
   width: string;
   height: string;
@@ -26,17 +21,18 @@ class Canvas {
     return this.state.ctx!;
   }
 
-  get sizes(): TCanvasSizes {
-    return {
-      width: this.state.width,
-      height: this.state.height,
-    };
+  get width() {
+    return this.state.width;
+  }
+
+  get height() {
+    return this.state.height;
   }
 
   get styles(): TCanvasStyles {
     return {
-      width: `${this.sizes.width}px`,
-      height: `${this.sizes.height}px`,
+      width: `${this.width}px`,
+      height: `${this.height}px`,
     };
   }
 
