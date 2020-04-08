@@ -1,4 +1,4 @@
-# vue-tower-defense
+# vue-paddle-game
 
 ## Project setup
 ```
