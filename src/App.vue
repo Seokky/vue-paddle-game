@@ -4,27 +4,36 @@
       id="canvas"
       ref="canvas"
       :style="styles"
+      @mousemove="onMouseMove"
+      @touchmove="onTouchMove"
     />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
 import { MIN_BALL_RADIUS } from '@/constants';
-import { canvas } from '@/classes/Canvas';
 import { shapesDrawer } from '@/classes/ShapesDrawer';
 
 /*
   TODO: make speed dynamic depends on width and height
+  TODO: rounded paddle rect
+  TODO: touch-friendly
+  TODO: dynamical paddle width
+  TODO: make default paddle X centered
 */
 
 export default Vue.extend({
   name: 'App',
 
-  provide: { canvas },
-
   data() {
     return {
+      paddle: {
+        width: 100,
+        height: 30,
+        x: 10,
+      },
       ball: {
         x: 35,
         y: 35,
@@ -35,19 +44,25 @@ export default Vue.extend({
   },
 
   computed: {
+    ...mapGetters({
+      canvasWidth: 'moduleCanvas/width',
+      canvasHeight: 'moduleCanvas/height',
+      canvasStyles: 'moduleCanvas/styles',
+      canvasContext: 'moduleCanvas/context',
+    }),
     styles() {
-      return canvas.styles;
+      return this.canvasStyles;
     },
     ballRadius() {
-      const proportionalRadius = (canvas.width / 100) * 2;
+      const proportionalRadius = (this.canvasWidth / 100) * 2;
 
       return Math.min(MIN_BALL_RADIUS, proportionalRadius);
     },
   },
 
   async mounted() {
-    await canvas.init();
-    shapesDrawer.init(canvas.context);
+    await this.$store.dispatch('moduleCanvas/init');
+    shapesDrawer.init(this.canvasContext);
 
     this.drawAll();
 
@@ -61,8 +76,8 @@ export default Vue.extend({
 
       const MIN_X = this.ballRadius;
       const MIN_Y = this.ballRadius;
-      const MAX_X = canvas.width - this.ballRadius;
-      const MAX_Y = canvas.height - this.ballRadius;
+      const MAX_X = this.canvasWidth - this.ballRadius;
+      const MAX_Y = this.canvasHeight - this.ballRadius;
 
       if (this.ball.x >= MAX_X) {
         this.ball.x = MAX_X;
@@ -86,17 +101,19 @@ export default Vue.extend({
     },
     drawAll() {
       this.moveBall();
+      this.clearCanvas();
       this.drawBall();
+      this.drawPaddle();
 
       window.requestAnimationFrame(this.drawAll);
     },
+    drawPaddle() {
+      const { x, width, height } = this.paddle;
+      const y = this.canvasHeight - this.paddle.height;
+
+      shapesDrawer.fillRect(x, y, width, height, 'orange');
+    },
     drawBall() {
-      canvas.context.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height,
-      );
       shapesDrawer.fillCircle(
         this.ball.x,
         this.ball.y,
@@ -104,13 +121,60 @@ export default Vue.extend({
         'orange',
       );
     },
+    clearCanvas() {
+      this.canvasContext.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+    },
     toggleFullscreen(): void {
       return document.fullscreenElement
         ? document.exitFullscreen()
         : this.$refs.canvas.requestFullscreen();
     },
+    isCursorShouldBeHandled(e: MouseEvent | TouchEvent) {
+      const minAvailableX = this.paddle.x;
+      const maxAvailableX = this.paddle.x + this.paddle.width;
+      const touchX = e.touches[0].clientX;
+
+      if (touchX < minAvailableX || touchX > maxAvailableX) {
+        return false;
+      }
+
+      return true;
+    },
+    onMouseMove(e: MouseEvent) {
+      /* mouse position relative to canvas element */
+      const rect = e.target.getBoundingClientRect();
+      const touchX = e.clientX - rect.left;
+
+      this.movePaddle(touchX - this.paddle.width / 2);
+    },
+    onTouchMove(e: TouchEvent) {
+      if (!this.isCursorShouldBeHandled(e)) {
+        return;
+      }
+
+      const touchX = e.touches[0].clientX;
+      const newPaddleX = touchX - this.paddle.width / 2;
+
+      this.movePaddle(newPaddleX);
+    },
+    movePaddle(x: number) {
+      let newPaddleX = x;
+
+      const minPaddleX = (this.paddle.width / 2) * -1;
+      const maxPaddleX = this.canvasWidth - this.paddle.width / 2;
+
+      if (x < minPaddleX) {
+        newPaddleX = minPaddleX;
+      }
+
+      if (x > maxPaddleX) {
+        newPaddleX = maxPaddleX;
+      }
+
+      this.paddle.x = newPaddleX;
+    },
     async onResize() {
-      await canvas.init();
+      await this.$store.dispatch('moduleCanvas/init');
     },
   },
 });

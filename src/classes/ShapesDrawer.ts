@@ -22,7 +22,7 @@ class ShapesDrawer {
 
   public async fillRect(x: number, y: number, w: number, h: number, color: string) {
     this.context.fillStyle = color;
-    this.context.fillRect(0, 0, w, h);
+    this.context.fillRect(x, y, w, h);
   }
 }
 
