@@ -1,6 +1,11 @@
 import Vue from 'vue';
 import { TPaddleState } from '@/types/TPaddleState';
-import { DEFAULT_PADDLE_WIDTH, DEFAULT_PADDLE_HEIGHT } from '@/constants';
+import {
+  DEFAULT_PADDLE_WIDTH,
+  DEFAULT_PADDLE_HEIGHT,
+  PADDLE_COLOR,
+  PADDLE_SHADOW_COLOR,
+} from '@/constants';
 
 class Paddle {
   #state: TPaddleState = Vue.observable({
@@ -10,6 +15,8 @@ class Paddle {
     y: 0,
     minX: 0,
     maxX: 0,
+    color: PADDLE_COLOR,
+    shadowColor: PADDLE_SHADOW_COLOR,
   })
 
   get x() {
@@ -26,6 +33,14 @@ class Paddle {
 
   get height() {
     return this.#state.height;
+  }
+
+  get color() {
+    return this.#state.color;
+  }
+
+  get shadowColor() {
+    return this.#state.shadowColor;
   }
 
   private get minX() {

@@ -5,4 +5,6 @@ export type TPaddleState = {
   y: number;
   minX: number;
   maxX: number;
+  color: string;
+  shadowColor: string;
 }

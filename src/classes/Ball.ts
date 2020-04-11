@@ -2,7 +2,7 @@ import Vue from 'vue';
 import { TBallState } from '@/types/TBallState';
 import { TCoordsLimits } from '@/types/TCoordsLimits';
 import { TBallCoordinates } from '@/types/TBallCoordinates';
-import { MIN_BALL_RADIUS } from '@/constants';
+import { MIN_BALL_RADIUS, BALL_COLOR } from '@/constants';
 
 class Ball {
   #state: TBallState = Vue.observable({
@@ -21,6 +21,7 @@ class Ball {
         y: 0,
       },
     } as TCoordsLimits,
+    color: BALL_COLOR,
   });
 
   get x() {
@@ -41,6 +42,10 @@ class Ball {
 
   get radius() {
     return this.#state.radius;
+  }
+
+  get color() {
+    return this.#state.color;
   }
 
   public init(canvasWidth: number, canvasHeight: number) {

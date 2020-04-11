@@ -7,4 +7,5 @@ export type TBallState = {
   speedY: number;
   radius: number;
   coordsLimits: TCoordsLimits;
+  color: string;
 }

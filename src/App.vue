@@ -19,6 +19,7 @@ import { shapesDrawer } from '@/classes/ShapesDrawer';
 
 /*
   TODO: make speed dynamic depends on width and height
+  TODO: make paddle w and h dynamic depends on width and height
   TODO: rounded paddle rect
   TODO: touch-friendly
   TODO: dynamical paddle width
@@ -54,8 +55,8 @@ export default Vue.extend({
     },
 
     drawAll() {
-      ball.move();
       canvas.clear();
+      ball.move();
       this.drawBall();
       this.drawPaddle();
 
@@ -67,17 +68,18 @@ export default Vue.extend({
         ball.x,
         ball.y,
         ball.radius,
-        'orange',
+        ball.color,
       );
     },
 
     drawPaddle() {
+      shapesDrawer.setShadow(0, 0, 10, paddle.shadowColor);
       shapesDrawer.fillRect(
         paddle.x,
         paddle.y,
         paddle.width,
         paddle.height,
-        'orange',
+        paddle.color,
       );
     },
 
