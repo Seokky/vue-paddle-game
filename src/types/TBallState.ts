@@ -8,4 +8,5 @@ export type TBallState = {
   radius: number;
   coordsLimits: TCoordsLimits;
   color: string;
+  shadowColor: string;
 }

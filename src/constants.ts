@@ -1,6 +1,9 @@
 /* ball */
 export const MIN_BALL_RADIUS = 12;
 export const BALL_COLOR = 'orange';
+export const BALL_SHADOW_COLOR = 'blue';
+export const INITIAL_BALL_X = 35;
+export const INITIAL_BALL_Y = 20;
 
 /* paddle */
 export const DEFAULT_PADDLE_WIDTH = 120;

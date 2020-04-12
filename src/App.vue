@@ -57,39 +57,46 @@ export default Vue.extend({
       this.drawAll();
     },
 
+    async drawAll() {
+      canvas.clear();
+      paddle.draw();
+
+      const paddleX = {
+        start: paddle.x,
+        end: paddle.endX,
+      };
+
+      try {
+        const moveReport = await ball.move(paddleX, paddle.height);
+
+        if (moveReport.bounce && moveReport.bounceFrom === 'paddle') {
+          paddle.blinkWithColor('green');
+        }
+
+        ball.draw();
+
+        this.animRequestId = window.requestAnimationFrame(this.drawAll);
+      } catch (_) {
+        paddle.blinkWithColor('crimson', 500);
+
+        this.restartTheGame();
+      }
+    },
+
+    restartTheGame() {
+      ball.setInitialCoords();
+      ball.setInitialSpeed(canvas.width, canvas.height);
+
+      setTimeout(() => {
+        ball.draw();
+        this.animRequestId = window.requestAnimationFrame(this.drawAll);
+      }, 1000);
+    },
+
     async onResize() {
       window.clearTimeout(this.resizeTimeoutId);
 
       this.resizeTimeoutId = setTimeout(this.initApp, 300);
-    },
-
-    drawAll() {
-      canvas.clear();
-      ball.move();
-      this.drawBall();
-      this.drawPaddle();
-
-      this.animRequestId = window.requestAnimationFrame(this.drawAll);
-    },
-
-    drawBall() {
-      painter.fillCircle(
-        ball.x,
-        ball.y,
-        ball.radius,
-        ball.color,
-      );
-    },
-
-    drawPaddle() {
-      painter.setShadow(0, 0, 10, paddle.shadowColor);
-      painter.fillRect(
-        paddle.x,
-        paddle.y,
-        paddle.width,
-        paddle.height,
-        paddle.color,
-      );
     },
 
     onMouseMove(e: MouseEvent) {
@@ -102,17 +109,16 @@ export default Vue.extend({
     },
 
     onTouchMove(e: TouchEvent) {
-      if (!this.isCursorShouldBeHandled(e)) {
+      if (!this.isTouchShouldBeHandled(e)) {
         return;
       }
 
       const touchX = e.touches[0].clientX;
-      const newPaddleX = touchX - paddle.width / 2;
 
-      paddle.move(newPaddleX);
+      paddle.move(touchX - paddle.width / 2);
     },
 
-    isCursorShouldBeHandled(e: TouchEvent) {
+    isTouchShouldBeHandled(e: TouchEvent) {
       const minAvailableX = paddle.x;
       const maxAvailableX = paddle.x + paddle.width;
       const touchX = e.touches[0].clientX;

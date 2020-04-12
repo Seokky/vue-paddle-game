@@ -8,6 +8,7 @@ import {
   PADDLE_SHADOW_COLOR,
 } from '@/constants';
 import { getFixedNumberValue } from '@/utils';
+import { painter } from '@/classes/Painter';
 
 class Paddle {
   #state: TPaddleState = Vue.observable({
@@ -29,6 +30,10 @@ class Paddle {
 
   get x() {
     return this.#state.x;
+  }
+
+  get endX() {
+    return this.x + this.width;
   }
 
   get y() {
@@ -78,6 +83,32 @@ class Paddle {
     }
 
     this.setX(x);
+  }
+
+  public draw() {
+    painter.setShadow(0, 0, 10, this.shadowColor);
+    painter.fillRect(
+      this.x,
+      this.y,
+      this.width,
+      this.height,
+      this.color,
+    );
+  }
+
+  public blinkWithColor(color: string, duration = 150) {
+    this.setColor(color);
+    this.draw();
+    setTimeout(this.resetColor.bind(this), duration);
+  }
+
+  private setColor(color: string) {
+    this.#state.color = color;
+  }
+
+  private resetColor() {
+    this.setColor(PADDLE_COLOR);
+    this.draw();
   }
 
   private setMinMaxX(canvasWidth: number) {
