@@ -1,4 +1,4 @@
-class ShapesDrawer {
+class Painter {
   #ctx = null as CanvasRenderingContext2D | null;
 
   private get context() {
@@ -57,6 +57,6 @@ class ShapesDrawer {
   }
 }
 
-const shapesDrawer = new ShapesDrawer();
+const painter = new Painter();
 
-export { shapesDrawer };
+export { painter };

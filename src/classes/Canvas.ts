@@ -83,7 +83,7 @@ class Canvas {
         calculate height that meet ratio
       */
       while (height > maxHeight) {
-        width -= 5;
+        width -= 1;
         height = Canvas.getHeightDependsOnMode(width);
       }
 

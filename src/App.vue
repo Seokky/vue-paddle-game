@@ -12,46 +12,55 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { TCanvasStyles } from '@/types/TCanvasStyles';
 import { canvas } from '@/classes/Canvas';
 import { ball } from '@/classes/Ball';
 import { paddle } from '@/classes/Paddle';
-import { shapesDrawer } from '@/classes/ShapesDrawer';
-
-/*
-  TODO: make speed dynamic depends on width and height
-  TODO: make paddle w and h dynamic depends on width and height
-  TODO: rounded paddle rect
-  TODO: touch-friendly
-  TODO: dynamical paddle width
-  TODO: make default paddle X centered
-*/
+import { painter } from '@/classes/Painter';
 
 export default Vue.extend({
   name: 'App',
 
+  data() {
+    return {
+      animRequestId: 0,
+      resizeTimeoutId: 0,
+
+      /* for development */
+      paddle: paddle.state,
+      ball: ball.state,
+    };
+  },
+
   computed: {
-    styles() {
+    styles(): TCanvasStyles {
       return canvas.styles;
     },
   },
 
-  async mounted() {
-    await this.initApp();
-    this.drawAll();
+  mounted() {
+    this.initApp();
 
     window.addEventListener('resize', this.onResize);
   },
 
   methods: {
     async initApp() {
+      window.cancelAnimationFrame(this.animRequestId);
+
       await canvas.init();
+
       ball.init(canvas.width, canvas.height);
       paddle.init(canvas.width, canvas.height);
-      shapesDrawer.init(canvas.context);
+      painter.init(canvas.context);
+
+      this.drawAll();
     },
 
     async onResize() {
-      await this.initApp();
+      window.clearTimeout(this.resizeTimeoutId);
+
+      this.resizeTimeoutId = setTimeout(this.initApp, 300);
     },
 
     drawAll() {
@@ -60,11 +69,11 @@ export default Vue.extend({
       this.drawBall();
       this.drawPaddle();
 
-      window.requestAnimationFrame(this.drawAll);
+      this.animRequestId = window.requestAnimationFrame(this.drawAll);
     },
 
     drawBall() {
-      shapesDrawer.fillCircle(
+      painter.fillCircle(
         ball.x,
         ball.y,
         ball.radius,
@@ -73,20 +82,14 @@ export default Vue.extend({
     },
 
     drawPaddle() {
-      shapesDrawer.setShadow(0, 0, 10, paddle.shadowColor);
-      shapesDrawer.fillRect(
+      painter.setShadow(0, 0, 10, paddle.shadowColor);
+      painter.fillRect(
         paddle.x,
         paddle.y,
         paddle.width,
         paddle.height,
         paddle.color,
       );
-    },
-
-    toggleFullscreen() {
-      return document.fullscreenElement
-        ? document.exitFullscreen()
-        : canvas.el.requestFullscreen();
     },
 
     onMouseMove(e: MouseEvent) {
@@ -119,6 +122,12 @@ export default Vue.extend({
       }
 
       return true;
+    },
+
+    toggleFullscreen() {
+      return document.fullscreenElement
+        ? document.exitFullscreen()
+        : canvas.el.requestFullscreen();
     },
   },
 });

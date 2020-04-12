@@ -3,21 +3,29 @@ import { TPaddleState } from '@/types/TPaddleState';
 import {
   DEFAULT_PADDLE_WIDTH,
   DEFAULT_PADDLE_HEIGHT,
+  MIN_DEFAULT_PADDLE_WIDTH,
   PADDLE_COLOR,
   PADDLE_SHADOW_COLOR,
 } from '@/constants';
+import { getFixedNumberValue } from '@/utils';
 
 class Paddle {
   #state: TPaddleState = Vue.observable({
     width: DEFAULT_PADDLE_WIDTH,
     height: DEFAULT_PADDLE_HEIGHT,
-    x: 10,
+    x: 0,
     y: 0,
     minX: 0,
     maxX: 0,
     color: PADDLE_COLOR,
     shadowColor: PADDLE_SHADOW_COLOR,
   })
+
+  get state() {
+    const isProd = process.env.NODE_ENV === 'production';
+
+    return isProd ? null : this.#state;
+  }
 
   get x() {
     return this.#state.x;
@@ -53,30 +61,55 @@ class Paddle {
 
   public init(canvasWidth: number, canvasHeight: number) {
     this.setMinMaxX(canvasWidth);
+    this.setInitialWidth(canvasWidth);
+    this.setInitialX(canvasWidth);
     this.setY(canvasHeight);
   }
 
   public move(x: number) {
     if (x < this.minX) {
-      this.#state.x = this.minX;
+      this.setX(this.minX);
       return;
     }
 
     if (x > this.maxX) {
-      this.#state.x = this.maxX;
+      this.setX(this.maxX);
       return;
     }
 
-    this.#state.x = x;
+    this.setX(x);
   }
 
   private setMinMaxX(canvasWidth: number) {
+    /* allow paddle to out of canvas by half of itself width */
     this.#state.minX = (this.width / 2) * -1;
     this.#state.maxX = canvasWidth - this.width / 2;
   }
 
+  private setInitialX(canvasWidth: number) {
+    const canvasCenterX = canvasWidth / 2;
+
+    this.setX(canvasCenterX - this.width / 2);
+  }
+
+  private setInitialWidth(canvasWidth: number) {
+    const proportionalWidth = canvasWidth / 10;
+    const width = Math.max(
+      MIN_DEFAULT_PADDLE_WIDTH,
+      proportionalWidth,
+    );
+
+    this.#state.width = getFixedNumberValue(width);
+  }
+
+  private setX(x: number) {
+    this.#state.x = getFixedNumberValue(x);
+  }
+
   private setY(canvasHeight: number) {
-    this.#state.y = canvasHeight - this.height;
+    const y = canvasHeight - this.height;
+
+    this.#state.y = getFixedNumberValue(y);
   }
 }
 

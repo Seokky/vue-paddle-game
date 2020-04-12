@@ -2,14 +2,18 @@ import Vue from 'vue';
 import { TBallState } from '@/types/TBallState';
 import { TCoordsLimits } from '@/types/TCoordsLimits';
 import { TBallCoordinates } from '@/types/TBallCoordinates';
+import { TCoords } from '@/types/TCoords';
 import { MIN_BALL_RADIUS, BALL_COLOR } from '@/constants';
+import { getFixedNumberValue } from '@/utils';
 
 class Ball {
   #state: TBallState = Vue.observable({
     x: 35,
     y: 35,
-    speedX: 5,
-    speedY: 5,
+    speed: {
+      x: 5,
+      y: 5,
+    },
     radius: MIN_BALL_RADIUS,
     coordsLimits: {
       min: {
@@ -24,6 +28,12 @@ class Ball {
     color: BALL_COLOR,
   });
 
+  get state() {
+    const isProd = process.env.NODE_ENV === 'production';
+
+    return isProd ? null : this.#state;
+  }
+
   get x() {
     return this.#state.x;
   }
@@ -32,12 +42,8 @@ class Ball {
     return this.#state.y;
   }
 
-  get speedX() {
-    return this.#state.speedX;
-  }
-
-  get speedY() {
-    return this.#state.speedY;
+  get speed(): TCoords {
+    return this.#state.speed;
   }
 
   get radius() {
@@ -50,13 +56,14 @@ class Ball {
 
   public init(canvasWidth: number, canvasHeight: number) {
     this.setCoordsLimits(canvasWidth, canvasHeight);
-    this.setRadius(canvasWidth);
+    this.setInitialRadius(canvasWidth);
+    this.setInitialSpeed(canvasWidth, canvasHeight);
   }
 
   public move() {
     this.setCoordinates({
-      x: this.x + this.speedX,
-      y: this.y + this.speedY,
+      x: this.x + this.speed.x,
+      y: this.y + this.speed.y,
     });
 
     const { max, min } = this.#state.coordsLimits;
@@ -82,6 +89,15 @@ class Ball {
     }
   }
 
+  public setSpeed(value: number, axis?: 'x' | 'y') {
+    if (axis) {
+      this.#state.speed[axis] = value;
+    }
+
+    this.#state.speed.x = value;
+    this.#state.speed.y = value;
+  }
+
   private setCoordsLimits(canvasWidth: number, canvasHeight: number) {
     this.#state.coordsLimits.min.x = this.radius;
     this.#state.coordsLimits.min.y = this.radius;
@@ -89,34 +105,38 @@ class Ball {
     this.#state.coordsLimits.max.y = canvasHeight - this.radius;
   }
 
-  private setRadius(canvasWidth: number) {
-    const proportionalRadius = (canvasWidth / 100) * 2;
+  private setInitialRadius(canvasWidth: number) {
+    const proportionalRadius = (canvasWidth / 100) * 1.1;
 
-    this.#state.radius = Math.min(
+    this.#state.radius = Math.max(
       MIN_BALL_RADIUS,
       proportionalRadius,
     );
   }
 
-  private setCoordinates(payload: TBallCoordinates) {
-    function getNormalizedValue(val: number) {
-      return Number(val.toFixed(2));
-    }
+  private setInitialSpeed(canvasWidth: number, canvasHeight: number) {
+    const speedX = (canvasWidth / 100) * 0.5;
+    const speedY = (canvasHeight / 100) * 0.65;
 
+    this.setSpeed(speedX, 'x');
+    this.setSpeed(speedY, 'y');
+  }
+
+  private setCoordinates(payload: TBallCoordinates) {
     this.#state.x = payload.x
-      ? getNormalizedValue(payload.x)
+      ? getFixedNumberValue(payload.x)
       : this.#state.x;
 
     this.#state.y = payload.y
-      ? getNormalizedValue(payload.y)
+      ? getFixedNumberValue(payload.y)
       : this.#state.y;
   }
 
   private reverseSpeed(axis: 'x' | 'y') {
     if (axis === 'x') {
-      this.#state.speedX *= -1;
+      this.#state.speed.x *= -1;
     } else {
-      this.#state.speedY *= -1;
+      this.#state.speed.y *= -1;
     }
   }
 }
