@@ -1,5 +1,12 @@
 # vue-paddle-game
 
+Demo: https://seokky.github.io/vue-paddle-game/
+
+Stack:
+- Vue.js
+- TypeScript
+- Canvas
+
 ## Project setup
 ```
 yarn install
