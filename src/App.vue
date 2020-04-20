@@ -1,5 +1,7 @@
 <template>
   <div id="app">
+    <InfoPanel />
+
     <canvas
       id="canvas"
       ref="canvas"
@@ -12,24 +14,25 @@
 
 <script lang="ts">
 import Vue from 'vue';
+
 import { TCanvasStyles } from '@/types/TCanvasStyles';
 import { TBallMoveReport } from '@/types/TBallMoveReport';
+
 import { canvas } from '@/classes/Canvas';
+import { score } from '@/classes/Score';
 import { ball } from '@/classes/Ball';
 import { paddle } from '@/classes/Paddle';
 import { painter } from '@/classes/Painter';
 
+import InfoPanel from '@/components/InfoPanel.vue';
+
 export default Vue.extend({
-  name: 'App',
+  components: { InfoPanel },
 
   data() {
     return {
       animRequestId: 0,
       resizeTimeoutId: 0,
-
-      /* for development */
-      paddle: paddle.state,
-      ball: ball.state,
     };
   },
 
@@ -51,6 +54,7 @@ export default Vue.extend({
 
       await canvas.init();
 
+      score.init();
       ball.init(canvas.width, canvas.height);
       paddle.init(canvas.width, canvas.height);
       painter.init(canvas.context);
@@ -64,11 +68,14 @@ export default Vue.extend({
 
       ball
         .move(paddle.x, paddle.endX, paddle.height)
-        .then(this.onBallMove)
-        .catch(this.onBallMissThePaddle);
+        .then(this.onBallMoved)
+        .catch(this.onBallFell);
     },
 
     restartTheGame() {
+      score.updateRecord();
+      score.resetScore();
+
       ball.setInitialCoords();
       ball.setInitialSpeed(canvas.width, canvas.height);
       ball.draw();
@@ -82,19 +89,25 @@ export default Vue.extend({
       this.resizeTimeoutId = setTimeout(this.initApp, 300);
     },
 
-    onBallMove(moveReport: TBallMoveReport) {
-      if (moveReport.bounceFrom === 'paddle') {
-        paddle.blinkWithColor('green');
+    onBallMoved(moveReport: TBallMoveReport) {
+      if (moveReport.bounce && moveReport.bounceFrom === 'paddle') {
+        this.onBallHitThePaddle();
       }
 
       ball.draw();
+
       this.animRequestId = window.requestAnimationFrame(this.drawAll);
     },
 
-    onBallMissThePaddle() {
+    onBallFell() {
       paddle.blinkWithColor('crimson', 500);
 
       setTimeout(this.restartTheGame, 1000);
+    },
+
+    onBallHitThePaddle() {
+      paddle.blinkWithColor('green');
+      score.giveAward();
     },
 
     onMouseMove(e: MouseEvent) {
@@ -149,6 +162,7 @@ html {
   height: 100vh;
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 #canvas {
