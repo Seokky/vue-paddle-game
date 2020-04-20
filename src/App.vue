@@ -62,7 +62,7 @@ export default Vue.extend({
       this.drawAll();
     },
 
-    async drawAll() {
+    drawAll() {
       canvas.clear();
       paddle.draw();
 
@@ -83,7 +83,7 @@ export default Vue.extend({
       this.animRequestId = window.requestAnimationFrame(this.drawAll);
     },
 
-    async onResize() {
+    onResize() {
       window.clearTimeout(this.resizeTimeoutId);
 
       this.resizeTimeoutId = setTimeout(this.initApp, 300);

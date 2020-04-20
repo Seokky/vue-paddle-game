@@ -20,7 +20,7 @@ class Score {
   init() {
     const record = this.getRecordFromStorage();
 
-    this.#state.record = Number(record) || this.#state.record;
+    this.#state.record = Number(record) || 0;
   }
 
   giveAward() {
