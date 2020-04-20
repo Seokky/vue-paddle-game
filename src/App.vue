@@ -13,6 +13,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { TCanvasStyles } from '@/types/TCanvasStyles';
+import { TBallMoveReport } from '@/types/TBallMoveReport';
 import { canvas } from '@/classes/Canvas';
 import { ball } from '@/classes/Ball';
 import { paddle } from '@/classes/Paddle';
@@ -61,42 +62,39 @@ export default Vue.extend({
       canvas.clear();
       paddle.draw();
 
-      const paddleX = {
-        start: paddle.x,
-        end: paddle.endX,
-      };
-
-      try {
-        const moveReport = await ball.move(paddleX, paddle.height);
-
-        if (moveReport.bounce && moveReport.bounceFrom === 'paddle') {
-          paddle.blinkWithColor('green');
-        }
-
-        ball.draw();
-
-        this.animRequestId = window.requestAnimationFrame(this.drawAll);
-      } catch (_) {
-        paddle.blinkWithColor('crimson', 500);
-
-        this.restartTheGame();
-      }
+      ball
+        .move(paddle.x, paddle.endX, paddle.height)
+        .then(this.onBallMove)
+        .catch(this.onBallMissThePaddle);
     },
 
     restartTheGame() {
       ball.setInitialCoords();
       ball.setInitialSpeed(canvas.width, canvas.height);
+      ball.draw();
 
-      setTimeout(() => {
-        ball.draw();
-        this.animRequestId = window.requestAnimationFrame(this.drawAll);
-      }, 1000);
+      this.animRequestId = window.requestAnimationFrame(this.drawAll);
     },
 
     async onResize() {
       window.clearTimeout(this.resizeTimeoutId);
 
       this.resizeTimeoutId = setTimeout(this.initApp, 300);
+    },
+
+    onBallMove(moveReport: TBallMoveReport) {
+      if (moveReport.bounceFrom === 'paddle') {
+        paddle.blinkWithColor('green');
+      }
+
+      ball.draw();
+      this.animRequestId = window.requestAnimationFrame(this.drawAll);
+    },
+
+    onBallMissThePaddle() {
+      paddle.blinkWithColor('crimson', 500);
+
+      setTimeout(this.restartTheGame, 1000);
     },
 
     onMouseMove(e: MouseEvent) {

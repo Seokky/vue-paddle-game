@@ -70,7 +70,11 @@ class Ball {
     this.setInitialCoords();
   }
 
-  public move(paddleX: TPaddleX, paddleHeight: number): Promise<TBallMoveReport> {
+  public move(
+    paddleStart: number,
+    paddleEnd: number,
+    paddleHeight: number,
+  ): Promise<TBallMoveReport> {
     this.setCoordinates({
       x: this.x + this.speed.x,
       y: this.y + this.speed.y,
@@ -117,8 +121,8 @@ class Ball {
       /* if the ball hit the paddle */
       const maxYWithPaddle = max.y - paddleHeight;
       const didBallHitPaddle = (this.y > maxYWithPaddle)
-                            && (this.x >= paddleX.start)
-                            && (this.x <= paddleX.end);
+                            && (this.x >= paddleStart)
+                            && (this.x <= paddleEnd);
 
       if (didBallHitPaddle) {
         this.setCoordinates({ y: maxYWithPaddle });
@@ -206,8 +210,3 @@ class Ball {
 const ball = new Ball();
 
 export { ball };
-
-type TPaddleX = {
-  start: number;
-  end: number;
-}
